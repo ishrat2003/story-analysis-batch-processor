@@ -40,7 +40,7 @@ class Core:
     return True
   
   def saveGc(self, date):
-    filePath = os.path.join(self.categoryDirectoryPath, 'topics.json')
+    filePath = os.path.join(self.gcDirectoryPath, 'topics.json')
     currentInfo = self.file.read(filePath)
     if not currentInfo:
       currentInfo = {}
@@ -58,7 +58,7 @@ class Core:
       if topic not in currentInfo[date.year][date.month][date.day].keys():
         currentInfo[date.year][date.month][date.day][topic] = 0
       currentInfo[date.year][date.month][date.day][topic] += 1
-      
+    
     self.file.write(filePath, currentInfo)
     return
   
@@ -163,5 +163,6 @@ class Core:
       currentInfo['documents'][date.year][date.month][date.day][documentIdentifier] = document
       
       currentInfo['total_blocks'] += 1
+      
       self.file.write(filePath, currentInfo)
     return True

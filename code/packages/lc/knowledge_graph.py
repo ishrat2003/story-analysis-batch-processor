@@ -77,9 +77,9 @@ class KnowledgeGraph():
     
     def getCategory(self, result):
         if '@type' not in result.keys():
-            print('--------')
-            print(result)
-            return 'Others'
+            # print('--------')
+            # print(result)
+            return ''
         
         types = result['@type']
         if 'Person' in types:
