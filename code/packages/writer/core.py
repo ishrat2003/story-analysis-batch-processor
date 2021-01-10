@@ -53,7 +53,7 @@ class Core:
         
     if date.day not in currentInfo[date.year][date.month].keys():
       currentInfo[date.year][date.month][date.day]  = {}
-      
+    
     for topic in self.topics:
       if topic not in currentInfo[date.year][date.month][date.day].keys():
         currentInfo[date.year][date.month][date.day][topic] = 0
@@ -80,16 +80,16 @@ class Core:
   def getDocument(self, words, url, title, description):
     if not words:
       return False
-    
+
     allowedBlocks = (self.splits / 2)
     alternativeTopics = []
     for word in words:
       totalBlocks = len(word['blocks'])
-      
+
       if ((totalBlocks == self.splits) and (word['pos_type'] == 'Noun') and (word['stemmed_word'] not in self.topics)):
         self.topics.append(word['stemmed_word'])
       
-      if ((totalBlocks > allowedBlocks) and (word['pos_type'] == 'Noun') and (word['stemmed_word'] not in self.actions)):
+      if ((totalBlocks > allowedBlocks) and (word['pos_type'] == 'Noun') and (word['stemmed_word'] not in self.topics)):
         alternativeTopics.append(word['stemmed_word'])   
           
       if ((totalBlocks > allowedBlocks) and (word['pos_type'] == 'Verb') and (word['stemmed_word'] not in self.actions)):
