@@ -1,6 +1,7 @@
 from __future__ import print_function
 import json
 import urllib
+import socket
 import os
 
 class KnowledgeGraph():
@@ -8,6 +9,7 @@ class KnowledgeGraph():
     def __init__(self):
         self.endPoint = 'https://kgsearch.googleapis.com/v1/entities:search'
         self.apiKey = os.environ['GOOGLE_KNOWLEDGE_GRAPH']
+        self.timeout = int(os.environ['TIMEOUT'])
         self.reset()
         return
     
@@ -23,7 +25,16 @@ class KnowledgeGraph():
             'key': self.apiKey,
         }
         url = self.endPoint + '?' + urllib.parse.urlencode(params)
-        response = json.loads(urllib.request.urlopen(url).read())
+        
+        try:
+            response = urllib.request.urlopen(url, timeout = self.timeout).read()
+        except socket.timeout as e:
+            print(type(e))
+            print(url)
+            print("There was an error: %r" % e)
+            return None
+
+        response = json.loads(response)
         
         if not response or ('itemListElement' not in response.keys()) or not response['itemListElement'] or not response['itemListElement'][0]['result']:
             if self.isPerson(query.lower()):
@@ -65,6 +76,11 @@ class KnowledgeGraph():
         return ''
     
     def getCategory(self, result):
+        if '@type' not in result.keys():
+            print('--------')
+            print(result)
+            return 'Others'
+        
         types = result['@type']
         if 'Person' in types:
             return 'Person'

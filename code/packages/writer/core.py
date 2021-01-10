@@ -30,9 +30,10 @@ class Core:
     self.negative = []
     return
   
-  def save(self, documentIdentifier, words, date):
+  def save(self, documentIdentifier, documentTitle, documentDescription, words, date):
     self.reset()
-    document = self.getDocument(words)
+    document = self.getDocument(words, documentIdentifier, documentTitle, documentDescription)
+    
     self.saveWords(documentIdentifier, words, date, document)
     self.saveCategories()
     self.saveGc(date)
@@ -63,6 +64,8 @@ class Core:
   
   def saveCategories(self):
     for category in self.categories.keys():
+      if not category:
+        continue
       filePath = os.path.join(self.categoryDirectoryPath, category + '.json')
       currentList = self.file.read(filePath)
       if not currentList:
@@ -74,7 +77,7 @@ class Core:
       self.file.write(filePath, currentList)
     return
 
-  def getDocument(self, words):
+  def getDocument(self, words, url, title, description):
     if not words:
       return False
     
@@ -107,6 +110,9 @@ class Core:
       self.topics = alternativeTopics
         
     return {
+      'url': url,
+      'title': title,
+      'description': description,
       'blocks': word['blocks'],
       'first_block': word['first_block'],
       'position_weight_forward': word['position_weight_forward'],

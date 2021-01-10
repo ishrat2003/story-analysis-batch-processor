@@ -24,7 +24,11 @@ class Context:
         if not len(storyWords):
             return False
         
-        return self.writer.save(self.loader.getIdentifier(data), storyWords, date)
+        documentIdentifier = self.loader.getIdentifier(data)
+        documentTitle = self.loader.getTitle(data)
+        documentDescription = self.loader.getShortDescription(data)
+        
+        return self.writer.save(documentIdentifier, documentTitle, documentDescription, storyWords, date)
     
     def getWords(self, content):
         return self.story.getLCWords(content)
