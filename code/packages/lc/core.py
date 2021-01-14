@@ -96,7 +96,7 @@ class Core:
     
     
     def _cleanWord(self, word):
-        return re.sub(r'\'', r'', word)
+        return re.sub(r'[\'|\/]+', r'', word)
     
     def __getWords(self, text):
         words = word_tokenize(text)
