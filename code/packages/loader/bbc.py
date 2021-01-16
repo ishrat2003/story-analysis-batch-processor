@@ -1,6 +1,6 @@
 import json, datetime
 from .core import Core
-import urllib
+import urllib, socket
 from bs4 import BeautifulSoup
 
 class BBC(Core):
@@ -18,10 +18,21 @@ class BBC(Core):
         return item['description']
     
     def getPageContent(self, link):
-        fp = urllib.request.urlopen(link)
-        mybytes = fp.read()
-        page = mybytes.decode("utf8")
-        fp.close()
+        try:
+            fp = urllib.request.urlopen(link, timeout = self.timeout)
+            mybytes = fp.read()
+            page = mybytes.decode("utf8")
+            fp.close()
+        except socket.timeout as e:
+            print(type(e))
+            print(link)
+            print("There was an error: %r" % e)
+            return None
+        except urllib.error.HTTPError as e:
+            print(type(e))
+            print(link)
+            print("There was an error: %r" % e)
+            return None
         
        
         soup = BeautifulSoup(page, features="html.parser")

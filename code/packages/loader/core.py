@@ -1,9 +1,10 @@
-import json
+import json, os
 
 class Core:
 
   def __init__(self, format = "json"):
     self.format = format
+    self.timeout = int(os.environ['TIMEOUT'])
     return
 
 

@@ -9,6 +9,7 @@ class Json(Base):
         file = File(filePath)
         if file.exists():
             with open(filePath, 'r') as jsonFile:
+                jsonFile.flush()
                 data = json.load(jsonFile)
                 return data
         return None

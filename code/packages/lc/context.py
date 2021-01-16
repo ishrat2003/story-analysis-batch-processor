@@ -5,7 +5,7 @@ class Context:
     def __init__(self, loader, writer):
         self.loader = loader
         self.writer = writer
-        self.story = Story()
+        self.story = Story(self.writer)
         return
     
     def process(self, fileContent):

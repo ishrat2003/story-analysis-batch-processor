@@ -33,6 +33,11 @@ class KnowledgeGraph():
             print(url)
             print("There was an error: %r" % e)
             return None
+        except urllib.error.HTTPError as e:
+            print(type(e))
+            print(url)
+            print("There was an error: %r" % e)
+            return None
 
         response = json.loads(response)
         

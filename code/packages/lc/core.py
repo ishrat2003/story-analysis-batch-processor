@@ -8,7 +8,7 @@ from .knowledge_graph import KnowledgeGraph
 
 class Core:
     
-    def __init__(self):
+    def __init__(self, writer):
         self.splits = int(os.environ['SPLIT'])
         self.minCharLength = int(os.environ['MIN_CHAR_LENGTH'])
         self.stopWords = Utility.getStopWords()
@@ -18,6 +18,7 @@ class Core:
         self.stemmer = PorterStemmer()
         self.__loadGroups()
         self.knowledgeGraph = KnowledgeGraph()
+        self.writer = writer
         return
     
     

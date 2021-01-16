@@ -1,4 +1,4 @@
-import os
+import os, sys
 from filesystem.directory import Directory
 from file.json import Json as JsonFile
 
@@ -30,6 +30,9 @@ class Core:
     self.negative = []
     return
   
+  def getWordDirectoryPath(self):
+    return self.wordDirectoryPath
+  
   def save(self, documentIdentifier, documentTitle, documentDescription, words, date):
     self.reset()
     document = self.getDocument(words, documentIdentifier, documentTitle, documentDescription)
@@ -41,25 +44,44 @@ class Core:
   
   def saveGc(self, date):
     filePath = os.path.join(self.gcDirectoryPath, 'topics.json')
+    yearKey = str(date.year)
+    monthKey = str(date.month)
+    dayKey = str(date.day)
+    # print("-------------------------------")
     currentInfo = self.file.read(filePath)
-    if not currentInfo:
-      currentInfo = {}
+    # if(currentInfo):
+    #   print('current info', currentInfo)
+    #   print(currentInfo.keys())
 
-    if date.year not in currentInfo.keys():
-      currentInfo[date.year] = {}
+
+    if not currentInfo:
+      currentInfo = {}   
+    
+    if yearKey not in currentInfo.keys():
+      currentInfo[yearKey] = {}
       
-    if date.month not in currentInfo[date.year].keys():
-      currentInfo[date.year][date.month] = {}
-        
-    if date.day not in currentInfo[date.year][date.month].keys():
-      currentInfo[date.year][date.month][date.day]  = {}
+    # print(currentInfo[yearKey].keys())
+    if monthKey not in currentInfo[yearKey].keys():
+      currentInfo[yearKey][monthKey] = {}
+      
+    # print(currentInfo[yearKey][monthKey].keys())  
+    if dayKey not in currentInfo[yearKey][monthKey].keys():
+      currentInfo[yearKey][monthKey][dayKey]  = {}
     
+    # print(currentInfo[yearKey][monthKey][dayKey])
     for topic in self.topics:
-      if topic not in currentInfo[date.year][date.month][date.day].keys():
-        currentInfo[date.year][date.month][date.day][topic] = 0
-      currentInfo[date.year][date.month][date.day][topic] += 1
+      # print(topic, ' ', yearKey, ' ', monthKey, '  ', dayKey)
+      # print(currentInfo[yearKey][monthKey][dayKey].keys())
+      if topic not in currentInfo[yearKey][monthKey][dayKey].keys():
+        currentInfo[yearKey][monthKey][dayKey][topic] = 0
+        
+      currentInfo[yearKey][monthKey][dayKey][topic] += 1
+
+      
     
+    # print(currentInfo)
     self.file.write(filePath, currentInfo)
+    # print(self.file.read(filePath))
     return
   
   def saveCategories(self):
@@ -83,14 +105,17 @@ class Core:
 
     allowedBlocks = (self.splits / 2)
     alternativeTopics = []
+    orderedTopics = []
     for word in words:
       totalBlocks = len(word['blocks'])
-
-      if ((totalBlocks == self.splits) and (word['pos_type'] == 'Noun') and (word['stemmed_word'] not in self.topics)):
-        self.topics.append(word['stemmed_word'])
       
-      if ((totalBlocks > allowedBlocks) and (word['pos_type'] == 'Noun') and (word['stemmed_word'] not in self.topics)):
-        alternativeTopics.append(word['stemmed_word'])   
+      if ((word['pos_type'] == 'Noun') and (word['stemmed_word'] not in self.topics)):
+        if (totalBlocks == self.splits):
+          self.topics.append(word['stemmed_word'])
+        if (totalBlocks > allowedBlocks):
+          alternativeTopics.append(word['stemmed_word'])
+        if (len(orderedTopics) <= 3):
+          orderedTopics.append(word['stemmed_word'])  
           
       if ((totalBlocks > allowedBlocks) and (word['pos_type'] == 'Verb') and (word['stemmed_word'] not in self.actions)):
         self.actions.append(word['stemmed_word'])
@@ -109,6 +134,8 @@ class Core:
     if not len(self.topics):
       self.topics = alternativeTopics
         
+    if not len(self.topics):
+        self.topics = orderedTopics
     return {
       'url': url,
       'title': title,

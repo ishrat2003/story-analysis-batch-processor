@@ -1,5 +1,6 @@
-import math
+import math, os
 from .core import Core
+from file.json import Json as JsonFile
 
 class Story(Core):
     
@@ -92,7 +93,7 @@ class Story(Core):
             localWordInfo['pure_word'] = self.properNouns[wordLower]
             isProperNoun = True
             localWordInfo['pos_type'] = 'Proper Noun'
-            details = self.knowledgeGraph.getMoreDetails(wordKey, localWordInfo['pure_word'])
+            details = self.__getMoreDetails(wordKey, localWordInfo['pure_word'])
             if details:
                 localWordInfo['category'] = details['category']
                 localWordInfo['description'] = details['description']
@@ -128,4 +129,16 @@ class Story(Core):
             'wordsInfo': {}
         }
         return
+    
+    def __getMoreDetails(self, wordKey, pureWord):
+        file = JsonFile()
+        filePath = os.path.join(self.writer.getWordDirectoryPath(), wordKey + '.json')
+        currentInfo = file.read(filePath)
+        
+        if currentInfo and 'category' in currentInfo.keys():
+            return {
+                'category': currentInfo['category'],
+                'description': currentInfo['description']
+            };
+        return self.knowledgeGraph.getMoreDetails(wordKey, pureWord)
     
