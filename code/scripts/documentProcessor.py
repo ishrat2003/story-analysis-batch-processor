@@ -29,4 +29,5 @@ processor = LCContext(loader, storyWriter)
 sourceDirectory = Directory(params.source_directory)
 sourceDirectory.process(processor, params.total_items)
 
-print('Finished')
+logging.info('Finished')
+logging.info("# ================================")

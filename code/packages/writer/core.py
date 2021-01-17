@@ -1,4 +1,4 @@
-import os, sys
+import os, operator
 from filesystem.directory import Directory
 from file.json import Json as JsonFile
 
@@ -17,14 +17,18 @@ class Core:
     gcDirectory = Directory(self.gcDirectoryPath)
     gcDirectory.create()
     
+    self.mapsDirectoryPath = os.path.join(path, 'maps')
+    self.countryFilePath = os.path.join(self.gcDirectoryPath, 'country_topics.json')
+    
     self.splits = int(os.environ['SPLIT'])
     self.file = JsonFile()
+    self.loadCountries()
     self.reset()
     return
   
   def reset(self):
     self.categories = {}
-    self.topics = []
+    self.topics = {}
     self.actions = []
     self.positive = []
     self.negative = []
@@ -44,6 +48,7 @@ class Core:
   
   def saveGc(self, date):
     filePath = os.path.join(self.gcDirectoryPath, 'topics.json')
+    
     yearKey = str(date.year)
     monthKey = str(date.month)
     dayKey = str(date.day)
@@ -52,7 +57,6 @@ class Core:
     # if(currentInfo):
     #   print('current info', currentInfo)
     #   print(currentInfo.keys())
-
 
     if not currentInfo:
       currentInfo = {}   
@@ -69,18 +73,29 @@ class Core:
       currentInfo[yearKey][monthKey][dayKey]  = {}
     
     # print(currentInfo[yearKey][monthKey][dayKey])
-    for topic in self.topics:
+    for topicKey in self.topics.keys():
       # print(topic, ' ', yearKey, ' ', monthKey, '  ', dayKey)
       # print(currentInfo[yearKey][monthKey][dayKey].keys())
-      if topic not in currentInfo[yearKey][monthKey][dayKey].keys():
-        currentInfo[yearKey][monthKey][dayKey][topic] = 0
+      if topicKey not in currentInfo[yearKey][monthKey][dayKey].keys():
+        currentInfo[yearKey][monthKey][dayKey][topicKey] = {
+          'block_count': 0,
+          'display': self.topics[topicKey]['pure_word'],
+          'category': self.topics[topicKey]['category'], 
+          'description': self.topics[topicKey]['description'],
+          'sentiment': self.topics[topicKey]['sentiment']
+        }
         
-      currentInfo[yearKey][monthKey][dayKey][topic] += 1
+        if self.topics[topicKey]['pure_word'] in self.countries.keys():
+          print(self.topics[topicKey]['pure_word'])
+          self.countries[self.topics[topicKey]['pure_word']]['block_count'] += 1
+          self.countries[self.topics[topicKey]['pure_word']]['key'] = topicKey
+        
+      currentInfo[yearKey][monthKey][dayKey][topicKey]['block_count'] += 1
 
-      
-    
     # print(currentInfo)
     self.file.write(filePath, currentInfo)
+    self.file.write(self.countryFilePath, self.sort(self.countries))
+    
     # print(self.file.read(filePath))
     return
   
@@ -104,18 +119,18 @@ class Core:
       return False
 
     allowedBlocks = (self.splits / 2)
-    alternativeTopics = []
-    orderedTopics = []
+    alternativeTopics = {}
+    orderedTopics = {}
     for word in words:
       totalBlocks = len(word['blocks'])
       
-      if ((word['pos_type'] == 'Noun') and (word['stemmed_word'] not in self.topics)):
+      if ((word['pos_type'] == 'Noun') and (word['stemmed_word'] not in self.topics.keys())):
         if (totalBlocks == self.splits):
-          self.topics.append(word['stemmed_word'])
+          self.topics[word['stemmed_word']] = word
         if (totalBlocks > allowedBlocks):
-          alternativeTopics.append(word['stemmed_word'])
+          alternativeTopics[word['stemmed_word']] = word
         if (len(orderedTopics) <= 3):
-          orderedTopics.append(word['stemmed_word'])  
+          orderedTopics[word['stemmed_word']] = word
           
       if ((totalBlocks > allowedBlocks) and (word['pos_type'] == 'Verb') and (word['stemmed_word'] not in self.actions)):
         self.actions.append(word['stemmed_word'])
@@ -193,3 +208,34 @@ class Core:
       
       self.file.write(filePath, currentInfo)
     return True
+  
+  def sort(self, items, attribute='block_count'):
+    if not len(items):
+      return []
+
+    sortedItems = []
+    contributors = items.values()
+    
+    for value in sorted(contributors, key=operator.itemgetter(attribute, 'display'), reverse=True):
+        sortedItems.append(value)
+
+    return sortedItems
+  
+  def loadCountries(self):
+    self.countries = self.file.read(self.countryFilePath)
+    if self.countries and self.countries.keys().length:
+      return
+    
+    filePath = os.path.join(self.mapsDirectoryPath, 'countries.json')
+    items = self.file.read(filePath)
+    self.countries = {}
+    for item in items:
+      self.countries[item['name']] = {
+        'id': item['id'],
+        'display': item['name'],
+        'block_count': 0,
+        'key': None
+      }
+    return
+    
+

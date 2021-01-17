@@ -16,7 +16,7 @@ from file.json import Json
 tsvFileProcess = Tsv()
 jsonFileProcessor = Json() 
    
-data = tsvFileProcess.read(locationPath + '/map/world_population.tsv');
+data = tsvFileProcess.read(locationPath + '/maps/world_population.tsv');
 countries = []
 names = []
 
@@ -28,6 +28,6 @@ for index, item in data.iterrows():
     names.append(item['name'])
 
 
-jsonFileProcessor.write(locationPath + '/gc/countries.json', countries);
-jsonFileProcessor.write(locationPath + '/gc/countryNames.json', names);
+jsonFileProcessor.write(locationPath + '/maps/countries.json', countries);
+jsonFileProcessor.write(locationPath + '/maps/countryNames.json', names);
 print('Finished')
