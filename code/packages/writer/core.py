@@ -154,6 +154,7 @@ class Core:
       'url': url,
       'title': title,
       'description': description,
+      'category': word['category'],
       'blocks': word['blocks'],
       'first_block': word['first_block'],
       'position_weight_forward': word['position_weight_forward'],
@@ -168,6 +169,11 @@ class Core:
   def saveWords(self, documentIdentifier, words, date, document):
     if not words:
       return False
+    
+    yearKey = str(date.year)
+    monthKey = str(date.month)
+    dayKey = str(date.day)
+    fullDateKey = yearKey + '-' + monthKey + '-' + dayKey
     
     for word in words:
       filePath = os.path.join(self.wordDirectoryPath, word['stemmed_word'] + '.json')
@@ -189,41 +195,47 @@ class Core:
       if 'documents' not in currentInfo.keys():
         currentInfo['documents'] = {}
       
-      if date.year not in currentInfo['documents'].keys():
-        currentInfo['documents'][date.year] = {}
+      if yearKey not in currentInfo['documents'].keys():
+        currentInfo['documents'][yearKey] = {}
       
-      if date.month not in currentInfo['documents'][date.year].keys():
-        currentInfo['documents'][date.year][date.month] = {}
+      if monthKey not in currentInfo['documents'][yearKey].keys():
+        currentInfo['documents'][yearKey][monthKey] = {}
         
-      if date.day not in currentInfo['documents'][date.year][date.month].keys():
-        currentInfo['documents'][date.year][date.month][date.day]  = {}
+      if dayKey not in currentInfo['documents'][yearKey][monthKey].keys():
+        currentInfo['documents'][yearKey][monthKey][dayKey]  = {}
       
-      if documentIdentifier not in currentInfo['documents'][date.year][date.month][date.day].keys():
-        currentInfo['documents'][date.year][date.month][date.day][documentIdentifier] = {}
+      if documentIdentifier not in currentInfo['documents'][yearKey][monthKey][dayKey].keys():        
+        currentInfo['documents'][yearKey][monthKey][dayKey][documentIdentifier] = document
+        currentInfo['total_blocks'] += 1
         
-      currentInfo['documents'][date.year][date.month][date.day][documentIdentifier] = document
-      
-      currentInfo['total_blocks'] += 1
       if word['pure_word'] in self.countries.keys():
         self.countries[word['pure_word']]['block_count'] += 1
-        self.countries[word['pure_word']]['key'] =  word['stemmed_word']
+        self.countries[word['pure_word']]['key'] = word['stemmed_word']
       elif (word['category'] == 'Person'):
-        if word['stemmed_word'] not in self.person.keys():
-          self.person[word['stemmed_word']] = {
-            'display': word['pure_word'],
-            'block_count': 0
-          }
-        self.person[word['stemmed_word']]['block_count'] += 1
+        self.person[word['stemmed_word']] =  self.updatedItem(word, self.person, fullDateKey)
       elif (word['category'] == 'Organization'):
-        if word['stemmed_word'] not in self.organization.keys():
-          self.organization[word['stemmed_word']] = {
-            'display': word['pure_word'],
-            'block_count': 0
-          }
-        self.organization[word['stemmed_word']]['block_count'] += 1       
+        self.organization[word['stemmed_word']] =  self.updatedItem(word, self.organization, fullDateKey)    
       
       self.file.write(filePath, currentInfo)
     return True
+  
+  def updatedItem(self, word, items, fullDateKey):
+    processedWord = None
+    if word['stemmed_word'] not in items.keys():
+      processedWord = {
+        'display': word['pure_word'],
+        'total_block_count': 0,
+        'count_per_day': {}
+      }
+    else:
+      processedWord = items[word['stemmed_word']]
+    if fullDateKey not in processedWord['count_per_day'].keys():
+      processedWord['count_per_day'][fullDateKey] = 0
+      
+    processedWord['count_per_day'][fullDateKey] += 1 
+    processedWord['total_block_count'] += 1
+    return processedWord
+        
   
   def sort(self, items, attribute='block_count'):
     if not len(items):
