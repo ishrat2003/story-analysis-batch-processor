@@ -19,10 +19,11 @@ class Core:
     
     self.mapsDirectoryPath = os.path.join(path, 'maps')
     self.countryFilePath = os.path.join(self.gcDirectoryPath, 'country_topics.json')
+    self.personFilePath = os.path.join(self.gcDirectoryPath, 'person_topics.json')
+    self.organizationFilePath = os.path.join(self.gcDirectoryPath, 'organization_topics.json')
     
     self.splits = int(os.environ['SPLIT'])
     self.file = JsonFile()
-    self.loadCountries()
     self.reset()
     return
   
@@ -32,6 +33,9 @@ class Core:
     self.actions = []
     self.positive = []
     self.negative = []
+    self.loadCountries()
+    self.loadPerson()
+    self.loadOrganization()
     return
   
   def getWordDirectoryPath(self):
@@ -84,18 +88,13 @@ class Core:
           'description': self.topics[topicKey]['description'],
           'sentiment': self.topics[topicKey]['sentiment']
         }
-        
-        if self.topics[topicKey]['pure_word'] in self.countries.keys():
-          print(self.topics[topicKey]['pure_word'])
-          self.countries[self.topics[topicKey]['pure_word']]['block_count'] += 1
-          self.countries[self.topics[topicKey]['pure_word']]['key'] = topicKey
-        
       currentInfo[yearKey][monthKey][dayKey][topicKey]['block_count'] += 1
 
     # print(currentInfo)
     self.file.write(filePath, currentInfo)
-    self.file.write(self.countryFilePath, self.sort(self.countries))
-    
+    self.file.write(self.countryFilePath, self.countries)
+    self.file.write(self.personFilePath, self.person)
+    self.file.write(self.organizationFilePath, self.organization)
     # print(self.file.read(filePath))
     return
   
@@ -205,6 +204,23 @@ class Core:
       currentInfo['documents'][date.year][date.month][date.day][documentIdentifier] = document
       
       currentInfo['total_blocks'] += 1
+      if word['pure_word'] in self.countries.keys():
+        self.countries[word['pure_word']]['block_count'] += 1
+        self.countries[word['pure_word']]['key'] =  word['stemmed_word']
+      elif (word['category'] == 'Person'):
+        if word['stemmed_word'] not in self.person.keys():
+          self.person[word['stemmed_word']] = {
+            'display': word['pure_word'],
+            'block_count': 0
+          }
+        self.person[word['stemmed_word']]['block_count'] += 1
+      elif (word['category'] == 'Organization'):
+        if word['stemmed_word'] not in self.organization.keys():
+          self.organization[word['stemmed_word']] = {
+            'display': word['pure_word'],
+            'block_count': 0
+          }
+        self.organization[word['stemmed_word']]['block_count'] += 1       
       
       self.file.write(filePath, currentInfo)
     return True
@@ -216,14 +232,15 @@ class Core:
     sortedItems = []
     contributors = items.values()
     
-    for value in sorted(contributors, key=operator.itemgetter(attribute, 'display'), reverse=True):
+    for value in sorted(contributors, key=operator.itemgetter(attribute, 'block_count'), reverse=True):
         sortedItems.append(value)
 
     return sortedItems
   
   def loadCountries(self):
     self.countries = self.file.read(self.countryFilePath)
-    if self.countries and self.countries.keys().length:
+    
+    if self.countries and len(self.countries.keys()):
       return
     
     filePath = os.path.join(self.mapsDirectoryPath, 'countries.json')
@@ -237,5 +254,20 @@ class Core:
         'key': None
       }
     return
+  
+  def loadPerson(self):
+    self.person = self.file.read(self.personFilePath)
+    if self.person and len(self.person.keys()):
+      return
+    self.person = {}
+    return
+  
+  def loadOrganization(self):
+    self.organization = self.file.read(self.organizationFilePath)
+    if self.organization and len(self.organization.keys()):
+      return
+    self.organization = {}
+    return
+        
     
 
