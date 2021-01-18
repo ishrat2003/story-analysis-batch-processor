@@ -30,9 +30,9 @@ class Core:
   def reset(self):
     self.categories = {}
     self.topics = {}
-    self.actions = []
-    self.positive = []
-    self.negative = []
+    self.actions = {}
+    self.positive = {}
+    self.negative = {}
     self.loadCountries()
     self.loadPerson()
     self.loadOrganization()
@@ -132,13 +132,13 @@ class Core:
           orderedTopics[word['stemmed_word']] = word
           
       if ((totalBlocks > allowedBlocks) and (word['pos_type'] == 'Verb') and (word['stemmed_word'] not in self.actions)):
-        self.actions.append(word['stemmed_word'])
+        self.actions[word['stemmed_word']] = word
       
       if ((word['sentiment'] == 'positive') and (word['stemmed_word'] not in self.positive)):
-        self.positive.append(word['stemmed_word'])
+        self.positive[word['stemmed_word']] = word
         
       if ((word['sentiment'] == 'negative') and (word['stemmed_word'] not in self.negative)):
-        self.negative.append(word['stemmed_word'])
+        self.negative[word['stemmed_word']] = word
       
       if (word['category'] not in self.categories.keys()):
         self.categories[word['category']] = []
@@ -209,26 +209,27 @@ class Core:
         currentInfo['total_blocks'] += 1
         
       if word['pure_word'] in self.countries.keys():
-        self.countries[word['pure_word']]['block_count'] += 1
-        self.countries[word['pure_word']]['key'] = word['stemmed_word']
+        self.countries[word['pure_word']] =  self.updatedItem(word, self.countries, fullDateKey, word['pure_word'])
+        
       elif (word['category'] == 'Person'):
-        self.person[word['stemmed_word']] =  self.updatedItem(word, self.person, fullDateKey)
+        self.person[word['stemmed_word']] =  self.updatedItem(word, self.person, fullDateKey, word['stemmed_word'])
       elif (word['category'] == 'Organization'):
-        self.organization[word['stemmed_word']] =  self.updatedItem(word, self.organization, fullDateKey)    
+        self.organization[word['stemmed_word']] =  self.updatedItem(word, self.organization, fullDateKey, word['stemmed_word'])    
       
       self.file.write(filePath, currentInfo)
     return True
   
-  def updatedItem(self, word, items, fullDateKey):
+  def updatedItem(self, word, items, fullDateKey, wordKey):
     processedWord = None
-    if word['stemmed_word'] not in items.keys():
+    if wordKey not in items.keys():
       processedWord = {
         'display': word['pure_word'],
         'total_block_count': 0,
-        'count_per_day': {}
+        'count_per_day': {},
+        'key': word['stemmed_word']
       }
     else:
-      processedWord = items[word['stemmed_word']]
+      processedWord = items[wordKey]
     if fullDateKey not in processedWord['count_per_day'].keys():
       processedWord['count_per_day'][fullDateKey] = 0
       
@@ -262,8 +263,9 @@ class Core:
       self.countries[item['name']] = {
         'id': item['id'],
         'display': item['name'],
-        'block_count': 0,
-        'key': None
+        'total_block_count': 0,
+        'key': None,
+        'count_per_day': {}
       }
     return
   
