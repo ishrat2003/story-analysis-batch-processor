@@ -1,10 +1,13 @@
-import os, operator
+import os, operator, nltk
 from filesystem.directory import Directory
 from file.json import Json as JsonFile
+from nltk.stem.porter import PorterStemmer
+
 
 class Core:
 
   def __init__(self, path):
+    self.stemmer = PorterStemmer()
     self.wordDirectoryPath = os.path.join(path, 'words')
     wordDirectory = Directory(self.wordDirectoryPath)
     wordDirectory.create()
@@ -264,10 +267,15 @@ class Core:
         'id': item['id'],
         'display': item['name'],
         'total_block_count': 0,
-        'key': None,
+        'key': self.getKey(item['name']),
         'count_per_day': {}
       }
     return
+  
+  def getKey(self, word):
+    keys = word.split(' ')
+    key = keys[-1]
+    return self.stemmer.stem(key.lower())
   
   def loadPerson(self):
     self.person = self.file.read(self.personFilePath)
