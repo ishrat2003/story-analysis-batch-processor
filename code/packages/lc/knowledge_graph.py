@@ -3,6 +3,7 @@ import json
 import urllib
 import socket
 import os
+import http
 
 class KnowledgeGraph():
     
@@ -34,6 +35,16 @@ class KnowledgeGraph():
             print("There was an error: %r" % e)
             return None
         except urllib.error.HTTPError as e:
+            print(type(e))
+            print(url)
+            print("There was an error: %r" % e)
+            return None
+        except urllib.error.URLError as e:
+            print(type(e))
+            print(url)
+            print("There was an error: %r" % e)
+            return None
+        except  http.client.HTTPException as e:
             print(type(e))
             print(url)
             print("There was an error: %r" % e)

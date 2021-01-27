@@ -71,7 +71,7 @@ class Directory():
 				print("No content found to process ", filePath)
 			
 			count += 1
-			# print('.', count)
+			print(filename, ' - ', count)
    
 		print("Total items processed ", count)
 		return

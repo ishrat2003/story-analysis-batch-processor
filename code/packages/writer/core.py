@@ -127,12 +127,12 @@ class Core:
       totalBlocks = len(word['blocks'])
       
       if ((word['pos_type'] == 'Noun') and (word['stemmed_word'] not in self.topics.keys())):
-        if (totalBlocks == self.splits):
-          self.topics[word['stemmed_word']] = word
+        # if (totalBlocks == self.splits):
+        #   self.topics[word['stemmed_word']] = word
         if (totalBlocks > allowedBlocks):
           alternativeTopics[word['stemmed_word']] = word
-        if (len(orderedTopics) <= 3):
-          orderedTopics[word['stemmed_word']] = word
+        # if (len(orderedTopics) <= 3):
+        #   orderedTopics[word['stemmed_word']] = word
           
       if ((totalBlocks > allowedBlocks) and (word['pos_type'] == 'Verb') and (word['stemmed_word'] not in self.actions)):
         self.actions[word['stemmed_word']] = word
