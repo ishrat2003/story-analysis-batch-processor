@@ -33,7 +33,11 @@ class BBC(Core):
             print(link)
             print("There was an error: %r" % e)
             return None
-        
+        except urllib.error.URLError as e:
+            print(type(e))
+            print(link)
+            print("There was an error: %r" % e)
+            return None  
        
         soup = BeautifulSoup(page, features="html.parser")
         divs = soup.findAll('div', attrs={"class":"story-body__inner"})

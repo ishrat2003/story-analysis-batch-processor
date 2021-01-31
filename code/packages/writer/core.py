@@ -19,11 +19,12 @@ class Core:
     self.gcDirectoryPath = os.path.join(path, 'gc')
     gcDirectory = Directory(self.gcDirectoryPath)
     gcDirectory.create()
-    
+
     self.mapsDirectoryPath = os.path.join(path, 'maps')
     self.countryFilePath = os.path.join(self.gcDirectoryPath, 'country_topics.json')
     self.personFilePath = os.path.join(self.gcDirectoryPath, 'person_topics.json')
     self.organizationFilePath = os.path.join(self.gcDirectoryPath, 'organization_topics.json')
+    self.commonDataFilePath = os.path.join(self.gcDirectoryPath, 'common.json')
     
     self.splits = int(os.environ['SPLIT'])
     self.file = JsonFile()
@@ -36,9 +37,11 @@ class Core:
     self.actions = {}
     self.positive = {}
     self.negative = {}
+    self.common = {}
     self.loadCountries()
     self.loadPerson()
     self.loadOrganization()
+    self.loadCommonData()
     return
   
   def getWordDirectoryPath(self):
@@ -47,6 +50,7 @@ class Core:
   def save(self, documentIdentifier, documentTitle, documentDescription, words, date):
     self.reset()
     document = self.getDocument(words, documentIdentifier, documentTitle, documentDescription)
+    self.common['total'] += 1
     
     self.saveWords(documentIdentifier, words, date, document)
     self.saveCategories()
@@ -98,6 +102,7 @@ class Core:
     self.file.write(self.countryFilePath, self.countries)
     self.file.write(self.personFilePath, self.person)
     self.file.write(self.organizationFilePath, self.organization)
+    self.file.write(self.commonDataFilePath, self.common)
     # print(self.file.read(filePath))
     return
   
@@ -207,7 +212,10 @@ class Core:
       if dayKey not in currentInfo['documents'][yearKey][monthKey].keys():
         currentInfo['documents'][yearKey][monthKey][dayKey]  = {}
       
-      if documentIdentifier not in currentInfo['documents'][yearKey][monthKey][dayKey].keys():        
+      if documentIdentifier not in currentInfo['documents'][yearKey][monthKey][dayKey].keys():
+        if not self.isWordInDocument(document, word['stemmed_word']) and word['pos_type'] != 'Verb':
+              document['topics'][word['stemmed_word']] = word
+          
         currentInfo['documents'][yearKey][monthKey][dayKey][documentIdentifier] = document
         currentInfo['total_blocks'] += 1
         
@@ -221,6 +229,13 @@ class Core:
       
       self.file.write(filePath, currentInfo)
     return True
+  
+  def isWordInDocument(self, document, wordKey):
+    if wordKey in document['topics'].keys():
+      return True
+    if wordKey in document['actions'].keys():
+      return True
+    return False
   
   def updatedItem(self, word, items, fullDateKey, wordKey):
     processedWord = None
@@ -289,6 +304,15 @@ class Core:
     if self.organization and len(self.organization.keys()):
       return
     self.organization = {}
+    return
+  
+  def loadCommonData(self):
+    self.common = self.file.read(self.commonDataFilePath)
+    if self.common and len(self.common.keys()):
+      return
+    self.common = {
+      'total': 0
+    }
     return
         
     
