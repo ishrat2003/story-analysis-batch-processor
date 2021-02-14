@@ -184,8 +184,6 @@ class Core:
     fullDateKey = yearKey + '-' + monthKey + '-' + dayKey
     
     for word in words:
-      print(word)
-      print('-------------')
       if word['pos_type'] != 'Noun':
         continue
       if word['type'] in ['NNP', 'NNPS']:

@@ -55,6 +55,8 @@ class Story(Core):
             return None
         wordLower = word.lower()
         cleanedWord = self._cleanWord(wordLower)
+        if not cleanedWord:
+            return None
         wordKey = self.stemmer.stem(cleanedWord)
         localWordInfo = {}
         localWordInfo['type'] = type

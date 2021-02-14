@@ -98,8 +98,8 @@ class Core:
     
     def _cleanWord(self, word):
         word = re.sub(r'([a-z]+)\'s', r'\1', word)
-        word = re.sub(r'([a-z]+)s\'|\/]+', r'\1', word)
-        return re.sub(r'!([a-z0-9\.\-\&]+)', r'', word)
+        word = re.sub(r'([a-z]+)s\']+', r'\1', word)
+        return re.sub(r'[^a-z0-9\.\-\&]+', r'', word)
     
     def __getWords(self, text):
         words = word_tokenize(text)
@@ -109,6 +109,7 @@ class Core:
         text = re.sub(r'([0-9]+)\.([0-9]+)', r'\1##\2', text)
         text = re.sub(r'\.', r'#END#', text)
         text = re.sub(r'([0-9]+)##([0-9]+)', r'\1.\2', text)
+        text = re.sub(r'[\/|\\]', r' ', text)
         text = re.split("\n|#END#|!|\?", text)
         return list(filter(lambda sentence: len(sentence) > 0, text))
     

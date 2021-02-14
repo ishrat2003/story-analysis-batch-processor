@@ -9,7 +9,10 @@ class BBC(Core):
         return datetime.datetime.strptime(item['pubDate'][5:16], '%d %b %Y')
     
     def getContent(self, item):
-        return item['title'] + '. ' + self.getPageContent(item['link'])
+        content = self.getPageContent(item['link'])
+        if not content:
+            return '';
+        return item['title'] + '. ' + content
     
     def getTitle(self, item):
         return item['title']
