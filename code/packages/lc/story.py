@@ -54,10 +54,11 @@ class Story(Core):
         if word in self.stopWords:
             return None
         wordLower = word.lower()
-        wordKey = self.stemmer.stem(self._cleanWord(wordLower))
+        cleanedWord = self._cleanWord(wordLower)
+        wordKey = self.stemmer.stem(cleanedWord)
         localWordInfo = {}
         localWordInfo['type'] = type
-        localWordInfo['pure_word'] = self._cleanWord(word)
+        localWordInfo['pure_word'] = cleanedWord
         localWordInfo['stemmed_word'] = wordKey
         localWordInfo['sentiment'] = ''
         

@@ -46,7 +46,7 @@ class Core:
 
         return sortedWords
     
-    def setSentences(self): 
+    def setSentences(self):
         sentences = self.__getRawSentences(self.text)
         self.data['total_sentences'] = len(sentences)
         self.data['threshold'] = math.ceil(self.data['total_sentences'] / self.splits)
@@ -87,7 +87,7 @@ class Core:
                 properNoun.append(word)
             
             if properNoun:
-                fullProperNoun = ' '.join(properNoun)
+                fullProperNoun = self._cleanWord(' '.join(properNoun))
                 indexNoun = self.stemmer.stem(properNoun[-1].lower())
                 if indexNoun in  self.properNouns.keys():
                   continue
@@ -97,7 +97,9 @@ class Core:
     
     
     def _cleanWord(self, word):
-        return re.sub(r'[\'|\/]+', r'', word)
+        word = re.sub(r'([a-z]+)\'s', r'\1', word)
+        word = re.sub(r'([a-z]+)s\'|\/]+', r'\1', word)
+        return re.sub(r'!([a-z0-9\.\-\&]+)', r'', word)
     
     def __getWords(self, text):
         words = word_tokenize(text)

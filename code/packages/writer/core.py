@@ -1,4 +1,4 @@
-import os, operator, nltk
+import os, operator, nltk, re
 from filesystem.directory import Directory
 from file.json import Json as JsonFile
 from nltk.stem.porter import PorterStemmer
@@ -184,6 +184,12 @@ class Core:
     fullDateKey = yearKey + '-' + monthKey + '-' + dayKey
     
     for word in words:
+      print(word)
+      print('-------------')
+      if word['pos_type'] != 'Noun':
+        continue
+      if word['type'] in ['NNP', 'NNPS']:
+        word['stemmed_word'] = word['pure_word'].lower()
       filePath = os.path.join(self.wordDirectoryPath, word['stemmed_word'] + '.json')
       currentInfo = self.file.read(filePath)
 
@@ -314,6 +320,10 @@ class Core:
       'total': 0
     }
     return
+  
+  def _cleanWord(self, word):
+    word = re.sub(r'\s+', r'_', word)
+    return re.sub(r'[\'|\/]+', r'', word)
         
     
 
