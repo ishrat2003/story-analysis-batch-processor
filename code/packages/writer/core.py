@@ -25,6 +25,7 @@ class Core:
     self.personFilePath = os.path.join(self.gcDirectoryPath, 'person_topics.json')
     self.organizationFilePath = os.path.join(self.gcDirectoryPath, 'organization_topics.json')
     self.commonDataFilePath = os.path.join(self.gcDirectoryPath, 'common.json')
+    self.documentsListFilePath = os.path.join(self.gcDirectoryPath, 'documents.json')
     
     self.splits = int(os.environ['SPLIT'])
     self.file = JsonFile()
@@ -42,6 +43,7 @@ class Core:
     self.loadPerson()
     self.loadOrganization()
     self.loadCommonData()
+    self.loadDocumentsList()
     return
   
   def getWordDirectoryPath(self):
@@ -49,8 +51,12 @@ class Core:
   
   def save(self, documentIdentifier, documentTitle, documentDescription, words, date):
     self.reset()
-    document = self.getDocument(words, documentIdentifier, documentTitle, documentDescription)
+    if documentIdentifier in self.documentsList:
+      return
+    
+    self.documentsList.append(documentIdentifier)
     self.common['total'] += 1
+    document = self.getDocument(words, documentIdentifier, documentTitle, documentDescription)
     
     self.saveWords(documentIdentifier, words, date, document)
     self.saveCategories()
@@ -103,6 +109,7 @@ class Core:
     self.file.write(self.personFilePath, self.person)
     self.file.write(self.organizationFilePath, self.organization)
     self.file.write(self.commonDataFilePath, self.common)
+    self.file.write(self.documentsListFilePath, self.documentsList)
     # print(self.file.read(filePath))
     return
   
@@ -317,6 +324,13 @@ class Core:
     self.common = {
       'total': 0
     }
+    return
+  
+  def loadDocumentsList(self):
+    self.documentsList = self.file.read(self.documentsListFilePath)
+    if self.documentsList and len(self.documentsList):
+      return
+    self.documentsList = []
     return
   
   def _cleanWord(self, word):
