@@ -64,7 +64,7 @@ class Directory():
 			itemFile = File(filePath)
 			fileContent = itemFile.read()
 			if fileContent:
-				processed = processor.process(itemFile.read())
+				processed = processor.process(fileContent)
 				if not processed:
 					print("Failed to process ", filePath)
 			else:

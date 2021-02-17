@@ -52,7 +52,7 @@ class Core:
   def save(self, documentIdentifier, documentTitle, documentDescription, words, date):
     self.reset()
     if documentIdentifier in self.documentsList:
-      return
+      return False
     
     self.documentsList.append(documentIdentifier)
     self.common['total'] += 1

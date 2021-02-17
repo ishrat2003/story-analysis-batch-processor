@@ -20,7 +20,7 @@ class Context:
             return False
         
         storyWords = self.getWords(content)
-        # print(storyWords)
+
         if not len(storyWords):
             return False
         
@@ -28,7 +28,8 @@ class Context:
         documentTitle = self.loader.getTitle(data)
         documentDescription = self.loader.getShortDescription(data)
         
-        return self.writer.save(documentIdentifier, documentTitle, documentDescription, storyWords, date)
+        self.writer.save(documentIdentifier, documentTitle, documentDescription, storyWords, date)
+        return True
     
     def getWords(self, content):
         return self.story.getLCWords(content)
