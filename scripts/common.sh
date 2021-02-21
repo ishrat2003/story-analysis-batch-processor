@@ -1,4 +1,4 @@
-parentDirectory="$(dirname "$(PWD)")"
+parentDirectory="$(dirname "$(pwd)")"
 echo $parentDirectory
 sourceDirectory="$parentDirectory/feed-data-generator/data"
 destinationDirectory="$parentDirectory/story-analysis-data"

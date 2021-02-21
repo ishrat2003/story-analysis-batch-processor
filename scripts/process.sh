@@ -4,7 +4,7 @@ processStory()
 {
   echo "Processing contents:"
   cd "$parentDirectory/story-analysis-batch-processor"
-  python3 code/scripts/documentProcessor.py --source_directory "$sourceDirectory/content" --destination_directory $destinationDirectory --total_items $totalItems
+  python3 code/scripts/documentProcessor.py --source_directory "$sourceDirectory/content" --destination_directory "$destinationDirectory" --total_items $totalItems
 }
 
 if [[ $story -eq 1 ]]
