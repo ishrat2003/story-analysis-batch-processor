@@ -1,18 +1,27 @@
-import json, datetime
+import json, datetime, re
 from .core import Core
 import urllib, socket
 from bs4 import BeautifulSoup
+import dateutil.parser as parser
 
 class BBC(Core):
     
+    def __init__(self, format = "json"):
+        super().__init__()
+        self.html = ''
+        return
+    
     def getDate(self, item):
-        return datetime.datetime.strptime(item['pubDate'][5:16], '%d %b %Y')
+        if not item or 'pubDate' not in item.keys():
+            return ''
+        
+        return parser.parse(item['pubDate'])
     
     def getContent(self, item):
-        content = self.getPageContent(item['link'])
-        if not content:
-            return '';
-        return item['title'] + '. ' + content
+        if not item or 'content' not in item.keys():
+            return ''
+        
+        return item['title'] + '. ' + item['content']
     
     def getTitle(self, item):
         return item['title']
@@ -20,7 +29,7 @@ class BBC(Core):
     def getShortDescription(self, item):
         return item['description']
     
-    def getPageContent(self, link):
+    def fetchPage(self, link, item):
         try:
             fp = urllib.request.urlopen(link, timeout = self.timeout)
             mybytes = fp.read()
@@ -30,7 +39,7 @@ class BBC(Core):
             print(type(e))
             print(link)
             print("There was an error: %r" % e)
-            return None
+            return None  
         except urllib.error.HTTPError as e:
             print(type(e))
             print(link)
@@ -40,9 +49,24 @@ class BBC(Core):
             print(type(e))
             print(link)
             print("There was an error: %r" % e)
-            return None  
-       
+            return None 
+
+        self.html = ''
         soup = BeautifulSoup(page, features="html.parser")
+        title = soup.find('title');
+        description = soup.find("meta", {"name": "description"}).attrs['content']
+        date = soup.find('time')
+        dateString = date.get('datetime') if date else item['pubDate']
+        item = {
+            'title': re.sub(' - BBC News$', '', title.text),
+            'description': description,
+            'pubDate': dateString,
+            'link': link,
+            'content': self.getPageContent(soup)
+        }
+        return item
+    
+    def getPageContent(self, soup):
         divs = soup.findAll('div', attrs={"class":"story-body__inner"})
         if divs:
             return self.getDivText(divs)
@@ -55,9 +79,11 @@ class BBC(Core):
                     continue
                 if item.name in ['div']:
                     text += self.getDivText(item.findChildren())
-                elif item.name in ['p', 'ul', 'li', 'ol']:
-                    text += str(item.text) + ' '
-
+                elif item.name in ['p', 'ul', 'li', 'ol', 'h2', 'h3']:
+                    value = str(item.text)
+                    text += value + ' '
+                    if value:
+                        self.html += '<' + item.name + '>' + value + '</' + item.name + '>'
         return text
     
     def shouldIncludeItem(self, item):
@@ -71,13 +97,15 @@ class BBC(Core):
         
         return False
         
-    
     def getDivText(self, divs):
         text = '';
         for div in divs:
             for item in div.findChildren():
-                if item.name in ['p', 'ul', 'li', 'ol']:
-                    text += str(item.text) + ' '
+                if item.name in ['p', 'ul', 'li', 'ol', 'h2', 'h3']:
+                    value = str(item.text)
+                    text += value + ' '
+                    if value:
+                        self.html += '<' + item.name + '>' + value + '</' + item.name + '>'
         return text
 
     

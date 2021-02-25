@@ -93,6 +93,7 @@ class Story(Core):
         if (type in ['NNP', 'NNPS']):
             if (wordLower not in self.properNouns.keys()):
                 return 
+            
             localWordInfo['pure_word'] = self.properNouns[wordLower]
             isProperNoun = True
             localWordInfo['pos_type'] = 'Proper Noun'
@@ -100,6 +101,7 @@ class Story(Core):
             if details:
                 localWordInfo['category'] = details['category']
                 localWordInfo['description'] = details['description']
+                # print(localWordInfo)
         elif (type in self.wordPosGroups['verb']):
             localWordInfo['pos_type'] = 'Verb'
 
@@ -115,6 +117,8 @@ class Story(Core):
             localWordInfo['sentiment'] = 'negative'
 
         self.data['wordsInfo'][wordKey] = localWordInfo
+        # print(localWordInfo)
+        # print('------------------------------')
         return wordKey
      
     def __reset(self, text):
@@ -142,6 +146,13 @@ class Story(Core):
             return {
                 'category': currentInfo['category'],
                 'description': currentInfo['description']
+            };
+        
+        category = self.category.get(pureWord)
+        if category:
+            return {
+                'category': category,
+                'description': ''
             };
         return self.knowledgeGraph.getMoreDetails(wordKey, pureWord)
     

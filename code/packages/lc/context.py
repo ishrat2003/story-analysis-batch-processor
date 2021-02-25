@@ -10,9 +10,11 @@ class Context:
     
     def process(self, fileContent):
         data = self.loader.load(fileContent)
+        
         if not data:
             return False
         
+        data = self.loader.fetchPage(data['link'], data)
         content = self.loader.getContent(data)
         date = self.loader.getDate(data)
 

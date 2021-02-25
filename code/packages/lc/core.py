@@ -5,6 +5,7 @@ from utility.utility import Utility
 import regex as re
 import os
 from .knowledge_graph import KnowledgeGraph
+from .category import Category
 
 class Core:
     
@@ -19,6 +20,7 @@ class Core:
         self.__loadGroups()
         self.knowledgeGraph = KnowledgeGraph()
         self.writer = writer
+        self.category = Category(self.writer.getPath())
         return
     
     
@@ -88,18 +90,20 @@ class Core:
             
             if properNoun:
                 fullProperNoun = self._cleanWord(' '.join(properNoun))
-                indexNoun = self.stemmer.stem(properNoun[-1].lower())
+                indexNoun = self.stemmer.stem(properNoun[-1])
                 if indexNoun in  self.properNouns.keys():
                   continue
                 else:
                     self.properNouns[indexNoun] = fullProperNoun
+                    
         return
     
     
     def _cleanWord(self, word):
-        word = re.sub(r'([a-z]+)\'s', r'\1', word)
-        word = re.sub(r'([a-z]+)s\']+', r'\1', word)
-        return re.sub(r'[^a-z0-9\.\-\&]+', r'', word)
+        word = word.lower()
+        word = re.sub(r'([a-z0-9\-\.]+)\'s', r'\1', word)
+        word = re.sub(r'([a-z0-9\-\.]+)s\']+', r'\1', word)
+        return re.sub(r'[^a-z0-9\.\-\&\s]+', r'', word)
     
     def __getWords(self, text):
         words = word_tokenize(text)

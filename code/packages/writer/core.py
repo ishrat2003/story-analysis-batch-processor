@@ -7,6 +7,7 @@ from nltk.stem.porter import PorterStemmer
 class Core:
 
   def __init__(self, path):
+    self.path = path
     self.stemmer = PorterStemmer()
     self.wordDirectoryPath = os.path.join(path, 'words')
     wordDirectory = Directory(self.wordDirectoryPath)
@@ -32,6 +33,9 @@ class Core:
     self.reset()
     return
   
+  def getPath(self):
+    return self.path
+  
   def reset(self):
     self.categories = {}
     self.topics = {}
@@ -53,7 +57,6 @@ class Core:
     self.reset()
     if documentIdentifier in self.documentsList:
       return False
-    
     self.documentsList.append(documentIdentifier)
     self.common['total'] += 1
     document = self.getDocument(words, documentIdentifier, documentTitle, documentDescription)
@@ -102,7 +105,6 @@ class Core:
           'sentiment': self.topics[topicKey]['sentiment']
         }
       currentInfo[yearKey][monthKey][dayKey][topicKey]['block_count'] += 1
-
     # print(currentInfo)
     self.file.write(filePath, currentInfo)
     self.file.write(self.countryFilePath, self.countries)
@@ -191,7 +193,7 @@ class Core:
     fullDateKey = yearKey + '-' + monthKey + '-' + dayKey
     
     for word in words:
-      if word['pos_type'] != 'Noun':
+      if word['pos_type'] not in ['Noun', 'Proper Noun']:
         continue
       if word['type'] in ['NNP', 'NNPS']:
         word['stemmed_word'] = word['pure_word'].lower()
@@ -230,14 +232,14 @@ class Core:
         currentInfo['documents'][yearKey][monthKey][dayKey][documentIdentifier] = document
         currentInfo['total_blocks'] += 1
         
-      if word['pure_word'] in self.countries.keys():
-        self.countries[word['pure_word']] =  self.updatedItem(word, self.countries, fullDateKey, word['pure_word'])
-        
+      countryName = self.getCountyName(word['pure_word'])
+      if countryName:
+        self.countries[word['pure_word']] =  self.updatedItem(word, self.countries, fullDateKey, countryName)
       elif (word['category'] == 'Person'):
         self.person[word['stemmed_word']] =  self.updatedItem(word, self.person, fullDateKey, word['stemmed_word'])
       elif (word['category'] == 'Organization'):
         self.organization[word['stemmed_word']] =  self.updatedItem(word, self.organization, fullDateKey, word['stemmed_word'])    
-      
+
       self.file.write(filePath, currentInfo)
     return True
   
@@ -287,6 +289,8 @@ class Core:
     
     filePath = os.path.join(self.mapsDirectoryPath, 'countries.json')
     items = self.file.read(filePath)
+    shortfilePath = os.path.join(self.mapsDirectoryPath, 'short_name_countries.json')
+    self.shortCountryNames = self.file.read(shortfilePath)
     self.countries = {}
     for item in items:
       self.countries[item['name']] = {
@@ -332,6 +336,13 @@ class Core:
       return
     self.documentsList = []
     return
+  
+  def getCountyName(self, name):
+    if name in self.countries.keys():
+      return name
+    if name in self.shortCountryNames.keys():
+      self.shortCountryNames[name]
+    return None
   
   def _cleanWord(self, word):
     word = re.sub(r'\s+', r'_', word)
