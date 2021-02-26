@@ -48,6 +48,7 @@ class Core:
     self.loadOrganization()
     self.loadCommonData()
     self.loadDocumentsList()
+    self.loadShortCountryNames()
     return
   
   def getWordDirectoryPath(self):
@@ -289,8 +290,7 @@ class Core:
     
     filePath = os.path.join(self.mapsDirectoryPath, 'countries.json')
     items = self.file.read(filePath)
-    shortfilePath = os.path.join(self.mapsDirectoryPath, 'short_name_countries.json')
-    self.shortCountryNames = self.file.read(shortfilePath)
+    
     self.countries = {}
     for item in items:
       self.countries[item['name']] = {
@@ -300,6 +300,11 @@ class Core:
         'key': self.getKey(item['name']),
         'count_per_day': {}
       }
+    return
+  
+  def loadShortCountryNames(self):
+    shortfilePath = os.path.join(self.mapsDirectoryPath, 'short_name_countries.json')
+    self.shortCountryNames = self.file.read(shortfilePath)
     return
   
   def getKey(self, word):
