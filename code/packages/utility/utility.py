@@ -52,6 +52,13 @@ class Utility():
 		return stopWords
 
 	@staticmethod
+	def getDesignations():
+		path = File.join(os.path.abspath(__file__ + "/../../../resources/"), 'designation.txt')
+		file = File(path)
+		designations = re.split('[\n]', file.read())
+		return designations
+
+	@staticmethod
 	def implode(terms, divider = ','):
 		return divider.join(s for s in terms)
 

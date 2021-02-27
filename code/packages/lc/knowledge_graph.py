@@ -53,12 +53,6 @@ class KnowledgeGraph():
         response = json.loads(response)
         
         if not response or ('itemListElement' not in response.keys()) or not response['itemListElement'] or not response['itemListElement'][0]['result']:
-            if self.isPerson(query.lower()):
-                self.appendCategoryItem("Person", query)
-                return {
-                    "description": "Individual",
-                    "category": "Person",
-                }
             return None
         
         if response['itemListElement'][0]['resultScore'] < 5:
@@ -119,14 +113,6 @@ class KnowledgeGraph():
             return True
         if ('detailedDescription' in item.keys()) and ('articleBody' in item['detailedDescription'].keys()) and self.stringContains(item['detailedDescription']['articleBody'].lower(), 'festival'):
             return True
-        return False
-            
-    
-    def isPerson(self, text):
-        for title in ['mr', 'mrs', 'miss', 'dr', 'doctor', 'prof', 'professor']:
-            if self.stringContains(text, title + ' '):
-                return True
-            
         return False
     
     def stringContains(self, text, subText):

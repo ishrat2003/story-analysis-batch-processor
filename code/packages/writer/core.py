@@ -1,4 +1,4 @@
-import os, operator, nltk, re
+import os, operator, nltk, re, datetime
 from filesystem.directory import Directory
 from file.json import Json as JsonFile
 from nltk.stem.porter import PorterStemmer
@@ -56,10 +56,11 @@ class Core:
   
   def save(self, documentIdentifier, documentTitle, documentDescription, words, date):
     self.reset()
-    if documentIdentifier in self.documentsList:
-      return False
+    # if documentIdentifier in self.documentsList:
+    #   return False
     self.documentsList.append(documentIdentifier)
-    self.common['total'] += 1
+    self.updateCommon(date)
+    
     document = self.getDocument(words, documentIdentifier, documentTitle, documentDescription)
     
     self.saveWords(documentIdentifier, words, date, document)
@@ -235,7 +236,7 @@ class Core:
         
       countryName = self.getCountyName(word['pure_word'])
       if countryName:
-        self.countries[word['pure_word']] =  self.updatedItem(word, self.countries, fullDateKey, countryName)
+        self.countries[word['pure_word']] =  self.updatedItem(word, self.countries, fullDateKey, word['pure_word'])
       elif (word['category'] == 'Person'):
         self.person[word['stemmed_word']] =  self.updatedItem(word, self.person, fullDateKey, word['stemmed_word'])
       elif (word['category'] == 'Organization'):
@@ -293,7 +294,7 @@ class Core:
     
     self.countries = {}
     for item in items:
-      self.countries[item['name']] = {
+      self.countries[item['name'].lower()] = {
         'id': item['id'],
         'display': item['name'],
         'total_block_count': 0,
@@ -331,7 +332,9 @@ class Core:
     if self.common and len(self.common.keys()):
       return
     self.common = {
-      'total': 0
+      'total': 0,
+      'max_date': '',
+      'min_date': '',
     }
     return
   
@@ -346,8 +349,42 @@ class Core:
     if name in self.countries.keys():
       return name
     if name in self.shortCountryNames.keys():
-      self.shortCountryNames[name]
+      return self.shortCountryNames[name]
     return None
+  
+  def updateCommon(self, date):
+    self.common['total'] += 1
+    
+    if self.shouldResetMaxDate(date):
+      self.common['max_date'] = date.strftime("%Y-%m-%d")
+      
+    if self.shouldResetMinDate(date):
+      self.common['min_date'] = date.strftime("%Y-%m-%d")
+    return
+  
+  
+  def isGreaterThanMin(self, date):
+        date = self.strToDate(date)
+        minDate = self.strToDate(self.dataDates['min'])
+        return date > minDate
+    
+  def shouldResetMaxDate(self, date):
+      if not self.common['max_date']:
+        return True
+      date = self.strToDate(date.strftime("%Y-%m-%d"))
+      maxDate = self.strToDate(self.common['max_date'])
+      return maxDate < date
+    
+  def shouldResetMinDate(self, date):
+      if not self.common['min_date']:
+        return True
+      date = self.strToDate(date.strftime("%Y-%m-%d"))
+      minDate = self.strToDate(self.common['min_date'])
+      return minDate > date
+  
+  def strToDate(self, date):
+      return datetime.datetime.strptime(date, '%Y-%m-%d')
+    
   
   def _cleanWord(self, word):
     word = re.sub(r'\s+', r'_', word)

@@ -15,6 +15,7 @@ class Core:
         self.stopWords = Utility.getStopWords()
         self.positiveWords = Utility.getPositiveWords()
         self.negativeWords = Utility.getNegativeWords()
+        self.designations = Utility.getDesignations()
         self.punctuationTypes = ['.', '?', '!']
         self.stemmer = PorterStemmer()
         self.__loadGroups()
@@ -73,7 +74,7 @@ class Core:
         if len(self.properNouns.keys()):
             return
         
-        items = re.finditer('([A-Z][a-z0-9\-]+\s*)+', self.text)
+        items = re.finditer('([A-Z][a-z0-9\-]+\s*)+(of\s[A-Z][a-z0-9\-]+)*', self.text)
 
         if not items:
             return
@@ -90,20 +91,30 @@ class Core:
             
             if properNoun:
                 fullProperNoun = self._cleanWord(' '.join(properNoun))
-                indexNoun = self.stemmer.stem(properNoun[-1])
-                if indexNoun in  self.properNouns.keys():
+                indexNoun = self.stemmer.stem(properNoun[-1].lower())
+                if indexNoun in self.properNouns.keys():
                   continue
                 else:
-                    self.properNouns[indexNoun] = fullProperNoun
-                    
+                    self.properNouns[indexNoun] = self.removeDesignation(fullProperNoun)
         return
     
+    def removeDesignation(self, fullName):
+        possibleNames = [fullName.title()]
+        for item in self.designations:
+            if len(item) > len(fullName):
+                return possibleNames[-1]
+            if fullName.find(item) != -1:
+                if item not in self.properNouns.keys():
+                    self.properNouns[item] = item.title()
+                possibleNames.append(fullName.replace(item, "").title())
+
+        return possibleNames[-1]
     
     def _cleanWord(self, word):
         word = word.lower()
-        word = re.sub(r'([a-z0-9\-\.]+)\'s', r'\1', word)
-        word = re.sub(r'([a-z0-9\-\.]+)s\']+', r'\1', word)
-        return re.sub(r'[^a-z0-9\.\-\&\s]+', r'', word)
+        word = re.sub(r'([A-Za-z0-9\-\.]+)\'s', r'\1', word)
+        word = re.sub(r'([A-Za-z0-9\-\.]+)s\'', r'\1', word)
+        return re.sub(r'[^A-Za-z0-9\.\-\&\s]+', r'', word)
     
     def __getWords(self, text):
         words = word_tokenize(text)

@@ -57,6 +57,7 @@ class Story(Core):
         cleanedWord = self._cleanWord(wordLower)
         if not cleanedWord:
             return None
+        
         wordKey = self.stemmer.stem(cleanedWord)
         localWordInfo = {}
         localWordInfo['type'] = type
@@ -97,11 +98,13 @@ class Story(Core):
             localWordInfo['pure_word'] = self.properNouns[wordLower]
             isProperNoun = True
             localWordInfo['pos_type'] = 'Proper Noun'
+            
             details = self.__getMoreDetails(wordKey, localWordInfo['pure_word'])
             if details:
                 localWordInfo['category'] = details['category']
                 localWordInfo['description'] = details['description']
                 # print(localWordInfo)
+            # print(wordKey, '--', localWordInfo['category'])
         elif (type in self.wordPosGroups['verb']):
             localWordInfo['pos_type'] = 'Verb'
 
@@ -142,17 +145,18 @@ class Story(Core):
         filePath = os.path.join(self.writer.getWordDirectoryPath(), wordKey + '.json')
         currentInfo = file.read(filePath)
         
-        if currentInfo and 'category' in currentInfo.keys():
-            return {
-                'category': currentInfo['category'],
-                'description': currentInfo['description']
-            };
-        
         category = self.category.get(pureWord)
         if category:
             return {
                 'category': category,
                 'description': ''
             };
+        
+        if currentInfo and 'category' in currentInfo.keys():
+            return {
+                'category': currentInfo['category'],
+                'description': currentInfo['description']
+            };
+        
         return self.knowledgeGraph.getMoreDetails(wordKey, pureWord)
     
