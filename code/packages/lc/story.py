@@ -53,7 +53,7 @@ class Story(Core):
             return None
         wordLower = word.lower()
         cleanedWord = self._cleanWord(wordLower)
-        if not cleanedWord:
+        if not cleanedWord or len(cleanedWord) > self.maxWordLength:
             return None
         
         wordKey = self.stemmer.stem(cleanedWord)

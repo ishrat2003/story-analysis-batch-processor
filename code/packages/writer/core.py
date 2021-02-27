@@ -56,8 +56,8 @@ class Core:
   
   def save(self, documentIdentifier, documentTitle, documentDescription, words, date):
     self.reset()
-    if documentIdentifier in self.documentsList:
-      return False
+    # if documentIdentifier in self.documentsList:
+    #   return False
     self.documentsList.append(documentIdentifier)
     self.updateCommon(date)
     
@@ -192,13 +192,12 @@ class Core:
     yearKey = str(date.year)
     monthKey = str(date.month)
     dayKey = str(date.day)
-    fullDateKey = yearKey + '-' + monthKey + '-' + dayKey
+    fullDateKey = yearKey + '-' + self.getFormattedMonthOrDay(monthKey) + '-' + self.getFormattedMonthOrDay(dayKey)
     
     for word in words:
       if word['pos_type'] not in ['Noun', 'Proper Noun']:
         continue
-      if word['type'] in ['NNP', 'NNPS']:
-        word['stemmed_word'] = word['pure_word'].lower()
+      
       filePath = os.path.join(self.wordDirectoryPath, word['stemmed_word'] + '.json')
       currentInfo = self.file.read(filePath)
 
@@ -233,14 +232,17 @@ class Core:
           
         currentInfo['documents'][yearKey][monthKey][dayKey][documentIdentifier] = document
         currentInfo['total_blocks'] += 1
-        
-      countryName = self.getCountyName(word['pure_word'])
-      if countryName:
-        self.countries[word['pure_word']] =  self.updatedItem(word, self.countries, fullDateKey, word['pure_word'])
-      elif (word['category'] == 'Person'):
-        self.person[word['stemmed_word']] =  self.updatedItem(word, self.person, fullDateKey, word['stemmed_word'])
-      elif (word['category'] == 'Organization'):
-        self.organization[word['stemmed_word']] =  self.updatedItem(word, self.organization, fullDateKey, word['stemmed_word'])    
+      
+      if word['type'] in ['NNP', 'NNPS']:
+        countryName = self.getCountyName(word['pure_word'])
+        wordKey = word['pure_word'].lower().strip().replace(' ', '_')
+        if countryName:
+          wordKey = countryName.lower()
+          self.countries[wordKey] =  self.updatedItem(word, self.countries, fullDateKey, wordKey)
+        elif (word['category'] == 'Person'):
+          self.person[wordKey] =  self.updatedItem(word, self.person, fullDateKey, wordKey)
+        elif (word['category'] == 'Organization'):
+          self.organization[wordKey] =  self.updatedItem(word, self.organization, fullDateKey, wordKey)    
 
       self.file.write(filePath, currentInfo)
     return True
@@ -253,7 +255,7 @@ class Core:
     return False
   
   def updatedItem(self, word, items, fullDateKey, wordKey):
-    wordKey = wordKey.lower()
+    wordKey = wordKey.lower().strip()
     processedWord = None
     if wordKey not in items.keys():
       processedWord = {
@@ -387,6 +389,10 @@ class Core:
   def strToDate(self, date):
       return datetime.datetime.strptime(date, '%Y-%m-%d')
     
+  def getFormattedMonthOrDay(self, number):
+      if int(number) < 10:
+        return '0' + number
+      return number
   
   def _cleanWord(self, word):
     word = word.strip()

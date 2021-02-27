@@ -22,6 +22,7 @@ class Core:
         self.knowledgeGraph = KnowledgeGraph()
         self.writer = writer
         self.category = Category(self.writer.getPath())
+        self.maxWordLength = 30
         return
     
     
