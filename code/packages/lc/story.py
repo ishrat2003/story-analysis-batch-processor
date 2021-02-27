@@ -29,8 +29,6 @@ class Story(Core):
         for key in analyzedKeys:
             word = self.data['wordsInfo'][key]
             self.data['story_words'].append(word)
-            if word['type'] in ['NNP', 'NNPS']:
-                display = word['pure_word'][0].upper() + word['pure_word'][1:]
                     
         self.data['total_story_words'] = len(self.data['story_words'])
         return
@@ -61,7 +59,7 @@ class Story(Core):
         wordKey = self.stemmer.stem(cleanedWord)
         localWordInfo = {}
         localWordInfo['type'] = type
-        localWordInfo['pure_word'] = cleanedWord
+        localWordInfo['pure_word'] = cleanedWord.title()
         localWordInfo['stemmed_word'] = wordKey
         localWordInfo['sentiment'] = ''
         

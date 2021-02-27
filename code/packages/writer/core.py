@@ -56,8 +56,8 @@ class Core:
   
   def save(self, documentIdentifier, documentTitle, documentDescription, words, date):
     self.reset()
-    # if documentIdentifier in self.documentsList:
-    #   return False
+    if documentIdentifier in self.documentsList:
+      return False
     self.documentsList.append(documentIdentifier)
     self.updateCommon(date)
     
@@ -253,6 +253,7 @@ class Core:
     return False
   
   def updatedItem(self, word, items, fullDateKey, wordKey):
+    wordKey = wordKey.lower()
     processedWord = None
     if wordKey not in items.keys():
       processedWord = {
@@ -346,6 +347,7 @@ class Core:
     return
   
   def getCountyName(self, name):
+    name = name.lower()
     if name in self.countries.keys():
       return name
     if name in self.shortCountryNames.keys():
@@ -387,6 +389,7 @@ class Core:
     
   
   def _cleanWord(self, word):
+    word = word.strip()
     word = re.sub(r'\s+', r'_', word)
     return re.sub(r'[\'|\/]+', r'', word)
         
