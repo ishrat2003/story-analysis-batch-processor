@@ -56,8 +56,8 @@ class Core:
   
   def save(self, documentIdentifier, documentTitle, documentDescription, words, date):
     self.reset()
-    # if documentIdentifier in self.documentsList:
-    #   return False
+    if documentIdentifier in self.documentsList:
+      return False
     self.documentsList.append(documentIdentifier)
     self.updateCommon(date)
     
@@ -200,7 +200,7 @@ class Core:
       
       filePath = os.path.join(self.wordDirectoryPath, word['stemmed_word'] + '.json')
       currentInfo = self.file.read(filePath)
-
+      print(word['pure_word'])
       if not currentInfo:
         currentInfo = {
           'type': word['type'], 

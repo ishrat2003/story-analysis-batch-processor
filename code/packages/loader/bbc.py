@@ -80,7 +80,7 @@ class BBC(Core):
                 if item.name in ['div']:
                     text += self.getDivText(item.findChildren())
                 elif item.name in ['p', 'ul', 'li', 'ol', 'h2', 'h3']:
-                    value = str(item.text)
+                    value = self.cleanText(item.text)
                     text += value + ' '
                     if value:
                         self.html += '<' + item.name + '>' + value + '</' + item.name + '>'
@@ -102,10 +102,28 @@ class BBC(Core):
         for div in divs:
             for item in div.findChildren():
                 if item.name in ['p', 'ul', 'li', 'ol', 'h2', 'h3']:
-                    value = str(item.text)
+                    value = self.cleanText(item.text)
                     text += value + ' '
                     if value:
                         self.html += '<' + item.name + '>' + value + '</' + item.name + '>'
+        return text
+    
+    def cleanText(self, text):
+        value = str(text).strip()
+        text = re.sub(r'Follow [a-zA-Z]+ on Twitter', r'', text)
+        ignoreTexts = [
+            "Do you work in the civil service? Share your views and experiences by emailing haveyoursay@bbc.co.uk.",
+            "Please include a contact number if you are willing to speak to a BBC journalist. You can also get in touch in the following ways:",
+            "Do you live in one of the areas where restrictions are being reintroduced? How will you be affected? Share your views and experiences by emailing haveyoursay@bbc.co.uk.",
+            "WhatsApp: +44 7756 165803. Tweet: @BBC_HaveYourSay. Please read our terms & conditions and privacy policy. ",
+            "Use the form below to send us your questions and we could be in touch.",
+            "In some cases your question will be published, displaying your name, age and location as you provide it, unless you state otherwise. Your contact details will never be published. Please ensure you have read the terms and conditions.",
+            "If you are reading this page on the BBC News app, you will need to visit the mobile version of the BBC website to submit your question on this topic.",
+            "Find BBC News: East of England on Facebook, Instagram and Twitter. If you have a story suggestion email eastofenglandnews@bbc.co.uk"
+        ]
+        for ignoreText in ignoreTexts:
+            text = text.replace(ignoreText, '')
+            
         return text
 
     
