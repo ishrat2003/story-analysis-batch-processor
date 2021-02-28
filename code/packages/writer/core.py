@@ -200,7 +200,7 @@ class Core:
       
       filePath = os.path.join(self.wordDirectoryPath, word['stemmed_word'] + '.json')
       currentInfo = self.file.read(filePath)
-      print(word['pure_word'])
+
       if not currentInfo:
         currentInfo = {
           'type': word['type'], 
