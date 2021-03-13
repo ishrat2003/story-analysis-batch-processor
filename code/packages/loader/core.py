@@ -7,11 +7,9 @@ class Core:
     self.timeout = int(os.environ['TIMEOUT'])
     return
 
-
   def load(self, content):
     if self.format == 'json':
       return json.loads(content)
-
     return content
   
   def getDate(self, item):
@@ -19,4 +17,3 @@ class Core:
   
   def getIdentifier(self, item):
     return item['link']
-

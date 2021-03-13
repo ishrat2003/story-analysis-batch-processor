@@ -3,7 +3,7 @@ from .core import Core
 import urllib, socket
 from bs4 import BeautifulSoup
 import dateutil.parser as parser
-
+import sys
 class BBC(Core):
     
     def __init__(self, format = "json"):
@@ -18,9 +18,8 @@ class BBC(Core):
         return parser.parse(item['pubDate'])
     
     def getContent(self, item):
-        if not item or 'content' not in item.keys():
-            return ''
-        
+        if (not item or ('content' not in item.keys())):
+            return '';
         return item['title'] + '. ' + item['content']
     
     def getTitle(self, item):
@@ -29,7 +28,7 @@ class BBC(Core):
     def getShortDescription(self, item):
         return item['description']
     
-    def fetchPage(self, link, item):
+    def fetchPage(self, link, item = None):
         try:
             fp = urllib.request.urlopen(link, timeout = self.timeout)
             mybytes = fp.read()
@@ -56,13 +55,14 @@ class BBC(Core):
         title = soup.find('title');
         description = soup.find("meta", {"name": "description"}).attrs['content']
         date = soup.find('time')
-        dateString = date.get('datetime') if date else item['pubDate']
+        dateString = date.get('datetime') if date else ''
         item = {
             'title': re.sub(' - BBC News$', '', title.text),
             'description': description,
             'pubDate': dateString,
             'link': link,
-            'content': self.getPageContent(soup)
+            'content': self.getPageContent(soup),
+            'content_html': self.html
         }
         return item
     
@@ -74,20 +74,18 @@ class BBC(Core):
         text = ''
         articles = soup.findAll('article')
         for article in articles:
-            for item in article.findChildren():
+            for item in article.findChildren(recursive=False):
                 if not self.shouldIncludeItem(item):
                     continue
-                if item.name in ['div']:
-                    text += self.getDivText(item.findChildren())
-                elif item.name in ['p', 'ul', 'li', 'ol', 'h2', 'h3']:
-                    value = self.cleanText(item.text)
-                    text += value + ' '
-                    if value:
-                        self.html += '<' + item.name + '>' + value + '</' + item.name + '>'
+                text += self.getAndAppendValue(item)
+        
+        self.html = text    
+        text = re.sub('<[^<]+?>', '', text)
+        text = re.sub('\s+', ' ', text)
         return text
     
     def shouldIncludeItem(self, item):
-        if item.name not in ['p', 'ul', 'li', 'ol', 'div']:
+        if item.name not in ['p', 'ul', 'li', 'ol', 'div', 'h2', 'h3', 'a', 'h3']:
             return False
         
         if item.attrs and 'class' in item.attrs.keys():
@@ -98,19 +96,33 @@ class BBC(Core):
         return False
         
     def getDivText(self, divs):
-        text = '';
+        text = ''
         for div in divs:
-            for item in div.findChildren():
-                if item.name in ['p', 'ul', 'li', 'ol', 'h2', 'h3']:
-                    value = self.cleanText(item.text)
-                    text += value + ' '
-                    if value:
-                        self.html += '<' + item.name + '>' + value + '</' + item.name + '>'
+            for item in div.findChildren(recursive=False):
+                text += self.getAndAppendValue(item)
         return text
     
+    def getAndAppendValue(self, item):
+        if item.name not in ['p', 'ul', 'li', 'ol', 'h2', 'h3', 'div', 'b']:
+            return '';
+        value = ''
+        if item.name in ['p', 'li']:
+            value = self.cleanText(item.text.strip())
+        elif item.findChildren():
+            for childItem in item.findChildren(recursive=False):
+                value += self.getAndAppendValue(childItem)
+        else:
+            value = self.cleanText(item.text)
+            
+        if value:
+            value = '<' + item.name + '>' + value + ' </' + item.name + '>'
+        return value
+    
     def cleanText(self, text):
-        value = str(text).strip()
+        value = re.sub('<[^<]+?>', '', str(text))
         text = re.sub(r'Follow [a-zA-Z]+ on Twitter', r'', text)
+        text = re.sub(r'^.*PODCAST:.+$', r'', text)
+        text = re.sub(r'^.*DOWNTIME SYMPHONY:.+$', r'', text)
         ignoreTexts = [
             "Do you work in the civil service? Share your views and experiences by emailing haveyoursay@bbc.co.uk.",
             "Please include a contact number if you are willing to speak to a BBC journalist. You can also get in touch in the following ways:",

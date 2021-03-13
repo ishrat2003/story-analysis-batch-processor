@@ -2,12 +2,13 @@ import os, operator, nltk, re, datetime
 from filesystem.directory import Directory
 from file.json import Json as JsonFile
 from nltk.stem.porter import PorterStemmer
+from .base import Base
 
-
-class Core:
+class Core(Base):
 
   def __init__(self, path):
-    self.path = path
+    super().__init__(path)
+    
     self.stemmer = PorterStemmer()
     self.wordDirectoryPath = os.path.join(path, 'words')
     wordDirectory = Directory(self.wordDirectoryPath)
@@ -32,10 +33,7 @@ class Core:
     self.file = JsonFile()
     self.reset()
     return
-  
-  def getPath(self):
-    return self.path
-  
+    
   def reset(self):
     self.categories = {}
     self.topics = {}
