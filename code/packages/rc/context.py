@@ -18,12 +18,12 @@ class Context:
         self.datedCount = {}
         return
     
-    def getData(self):
-        return {
-            'total': self.total,
-            'dated_count': self.datedCount,
-            'documents': self.documentsData
-        }
+    def getData(self, inputData):
+        data = inputData if inputData else {}
+        data['total'] = self.total
+        data['dated_count'] = self.datedCount,
+        data['documents'] = self.documentsData
+        return data
     
     def process(self, filePath, wordKey, startDate, endDate):
         file = JsonFile()
@@ -41,7 +41,7 @@ class Context:
         
         self.loadDocuments(data)
         
-        data = self.getData()
+        data = self.getData(data)
         if data:
             fileName = self.getRcFileName()
             self.writer.save(fileName, data)  
@@ -96,8 +96,6 @@ class Context:
             return
         
         text = self.loader.getContent(documentData)
-        if fullDateKey not in self.documentsData.keys():
-            self.documentsData[fullDateKey] = {}
             
         year, month, day = fullDateKey.split('-')
         if year not in self.documentsData.keys():
@@ -107,14 +105,35 @@ class Context:
         if day not in self.documentsData[year][month].keys():
             self.documentsData[year][month][day] = {}
             
+        storyWords = self.story.getContextualWords(text)
+        if not storyWords:
+            return
+        
+        topics = {}
+        actions = {}
+        positive = {}
+        negative = {}
+        for wordKey in storyWords.keys():
+            word = storyWords[wordKey]
+            if word['pos_type'] == 'Verb':
+                actions[wordKey] = word
+            elif word['sentiment'] == 'positive':
+                positive[wordKey] = word
+            elif word['sentiment'] == 'negative':
+                negative[wordKey] = word
+            else:
+                topics[wordKey] = word
+            
         self.documentsData[year][month][day][link] = {
             'link': documentData['link'],
             'title': documentData['title'],
             'pubDate': fullDateKey,
             'description': documentData['description'],
-            'story_words': self.story.getContextualWords(text)
+            'topics': topics,
+            'actions': actions,
+            'positive': positive,
+            'negative': negative
         }
-        
         return
     
     def getRcFileName(self):

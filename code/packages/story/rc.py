@@ -8,7 +8,7 @@ class RCStory(Core):
         super().__init__(path)
         self.positionContributingFactor = 0.5
         self.occuranceContributingFactor = 1
-        self.filterRate = 0.7
+        self.filterRate = 0.6
         self.maxScore = 0
         self.scanner = Scanner()
         return
@@ -29,10 +29,7 @@ class RCStory(Core):
         self.data['story_words'] = {}
 
         for wordKey in filteredWords.keys():
-            self.data['story_words'][wordKey] = {
-                'display': filteredWords[wordKey]['pure_word'],
-                'score': filteredWords[wordKey]['score']
-            }
+            self.data['story_words'][wordKey] = filteredWords[wordKey]
             self.data['story_words'][wordKey]['relations'] = self.scanner.scan(self.text, wordKey, filteredWords)
         return
     
