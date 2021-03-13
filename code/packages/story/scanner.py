@@ -5,15 +5,41 @@ import sys
 
 class Scanner:
     
-    def scan(self, text, wordKey, referenceWords):
-        print(wordKey)
-        sentences = self.getMatchingSentences(text, wordKey)
-        sys.exit();
+    def __init__(self):
+        self.stemmer = PorterStemmer()
         return
     
-    def getMatchingSentences(self, text, wordKey):
-        print(text)
+    def scan(self, text, wordKey, referenceWords):
+        self.sentenceWords = {}
+        self.loadRelationsMatchingSentences(text, wordKey, referenceWords)
+        return self.sentenceWords
+    
+    def loadRelationsMatchingSentences(self, text, wordKey, referenceWords):
+        
         items = re.finditer('[^!\?\.\n]*' + wordKey + '[^!\?\.\n]*[!\.\?\n]', text.lower())
         for item in items:
-            print(item)
+            self.loadSecondaryLevelWords(item.group(0), wordKey, referenceWords)
         return items
+    
+    
+    def loadSecondaryLevelWords(self, sentence, currentWordKey, referenceWords):
+        allowedPOSTypes = ['NN', 'NNS', 'NNP', 'NNPS']
+        sentence = re.sub(r'[^0-9a-z\s]+', r' ', sentence)
+        sentence = re.sub(r'\s+', r' ', sentence)
+        words = pos_tag(word_tokenize(sentence))
+        
+        
+        for word in words:
+            (wordDisplay, type) = word
+            wordKey = self.stemmer.stem(wordDisplay)
+            if (type not in allowedPOSTypes) or (wordKey not in referenceWords) or (wordKey == currentWordKey):
+                continue
+            
+            if wordKey not in self.sentenceWords.keys():
+                self.sentenceWords[wordKey] = {
+                    'display': wordDisplay[0].upper() + wordDisplay[1:],
+                    'value': 0
+                }
+                self.sentenceWords[wordKey]['value'] += 1
+            
+        return 

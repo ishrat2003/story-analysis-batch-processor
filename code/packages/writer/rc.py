@@ -10,6 +10,5 @@ class RC(Base):
     
     def save(self, fileName, data):
         filePath = self.getFilePath(self.rcDirectoryPath, fileName)
-        
         self.file.write(filePath, data)
         return

@@ -214,7 +214,7 @@ class KnowledgeGraph():
         return ''
     
     def getCategory(self, result):
-        types = result['@type']
+        types = result['@type'] if (result and ('@type' in result.keys())) else ''
         if 'Person' in types:
             return 'Person'
         
@@ -227,7 +227,6 @@ class KnowledgeGraph():
         if ('Organization' in types) or ('EducationalOrganization' in types):
             return 'Organization'
         
-        types.remove('Thing')
         if types:
             return types[0]
         

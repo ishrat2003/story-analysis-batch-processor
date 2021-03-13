@@ -91,7 +91,6 @@ class Context:
     
     def processDocument(self, link, fullDateKey):
         print(link)
-        print('----------------------------')
         documentData = self.loader.fetchPage(link)
         if not documentData or 'content' not in documentData.keys():
             return
@@ -100,8 +99,15 @@ class Context:
         if fullDateKey not in self.documentsData.keys():
             self.documentsData[fullDateKey] = {}
             
-        self.documentsData[link] = self.story.getContextualWords(text)
-        sys.exit()
+        year, month, day = fullDateKey.split('-')
+        if year not in self.documentsData.keys():
+            self.documentsData[year] = {}
+        if month not in self.documentsData[year].keys():
+            self.documentsData[year][month] = {}
+        if day not in self.documentsData[year][month].keys():
+            self.documentsData[year][month][day] = {}
+            
+        self.documentsData[year][month][day][link] = self.story.getContextualWords(text)
         return
     
     def getRcFileName(self):

@@ -29,7 +29,11 @@ class RCStory(Core):
         self.data['story_words'] = {}
 
         for wordKey in filteredWords.keys():
-            self.data['story_words'][wordKey] = self.scanner.scan(self.text, wordKey, filteredWords)
+            self.data['story_words'][wordKey] = {
+                'display': filteredWords[wordKey]['pure_word'],
+                'score': filteredWords[wordKey]['score']
+            }
+            self.data['story_words'][wordKey]['relations'] = self.scanner.scan(self.text, wordKey, filteredWords)
         return
     
     def getFilteredWords(self, sortedWords, minAllowedWeight):
