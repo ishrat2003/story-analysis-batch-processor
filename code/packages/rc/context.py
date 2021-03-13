@@ -107,7 +107,14 @@ class Context:
         if day not in self.documentsData[year][month].keys():
             self.documentsData[year][month][day] = {}
             
-        self.documentsData[year][month][day][link] = self.story.getContextualWords(text)
+        self.documentsData[year][month][day][link] = {
+            'link': documentData['link'],
+            'title': documentData['title'],
+            'pubDate': fullDateKey,
+            'description': documentData['description'],
+            'story_words': self.story.getContextualWords(text)
+        }
+        
         return
     
     def getRcFileName(self):
