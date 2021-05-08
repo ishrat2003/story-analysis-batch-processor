@@ -12,7 +12,7 @@ class Story(Core):
         pwfWords = self.sort('position_weight_forward')
         pwbWords = self.sort('position_weight_backward')
         
-        if not len(pwfWords) or not len(pwbWords):
+        if not pwfWords or not len(pwbWords):
             return
         
         analyzedKeys = self.data['story_words_keys']

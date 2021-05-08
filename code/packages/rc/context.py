@@ -29,6 +29,7 @@ class Context:
         file = JsonFile()
         data = file.read(filePath)
         if not data:
+            print('not data', filePath)
             return
         
         self.termboardTopics = wordKey.split(",")
@@ -50,6 +51,7 @@ class Context:
     
     def loadDocuments(self, data):
         if not data or 'documents' not in data.keys():
+            print('no doc')
             return
 
         self.matchRequired = len(self.termboardTopics)

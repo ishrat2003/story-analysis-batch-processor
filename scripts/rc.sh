@@ -1,6 +1,6 @@
 parentDirectory="$(dirname "$(pwd)")"
 echo $parentDirectory
-sourceDirectory="$parentDirectory/story-analysis-sample/paper2"
+sourceDirectory="$parentDirectory/story-analysis-data/words"
 destinationDirectory="$parentDirectory/story-analysis-data"
 
 helpFunction()
