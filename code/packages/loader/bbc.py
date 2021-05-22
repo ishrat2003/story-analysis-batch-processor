@@ -12,7 +12,7 @@ class BBC(Core):
         return
     
     def getDate(self, item):
-        if not item or 'pubDate' not in item.keys():
+        if not item or 'pubDate' not in item.keys() or not item['pubDate']:
             return ''
         
         return parser.parse(item['pubDate'])
